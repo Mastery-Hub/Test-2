@@ -1,5 +1,14 @@
 repeat task.wait() until game:IsLoaded() and game.Players.LocalPlayer:FindFirstChild("PlayerGui")
--- Notification khi chạy script
+
+
+pcall(function()
+    game.StarterGui:SetCore("SendNotification", {
+        Title = "Mastery Hub",
+        Text = "✅ Fix Lag Loaded! - Made by Qminh",
+        Duration = 5
+    })
+end)
+
 pcall(function()
     game.StarterGui:SetCore("SendNotification", {
         Title = "Mastery Hub",
@@ -151,7 +160,7 @@ end
 settings().Rendering.QualityLevel = Enum.QualityLevel.Level02
 
 -- Giới hạn FPS để ổn định (nếu máy yếu nên để 45)
-pcall(function() setfpscap(60) end)
+pcall(function() setfpscap(45) end)
 
 -- Tắt âm thanh nền không cần thiết
 for _, s in ipairs(game:GetDescendants()) do
@@ -162,5 +171,4 @@ end
 
 -- ✅ Kết thúc
 print("✅ Smooth + Stable Anti-Lag Activated - Made by Qminh(kenny)")
-
 
