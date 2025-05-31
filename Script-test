@@ -1,114 +1,262 @@
+repeat
+    wait()
+until game:IsLoaded() and game.Players.LocalPlayer:FindFirstChild("PlayerGui")
 
-repeat wait() until game:IsLoaded() and game.Players.LocalPlayer:FindFirstChild("PlayerGui")
-
--- Màu mặc định nếu rainbow chưa chạy
-_G.Color = Color3.fromRGB(0, 180, 255)
-
--- Tạo GUI hiển thị loại script, FPS và tên tác giả
-local ScreenGui = Instance.new("ScreenGui", game:GetService("CoreGui"))
-ScreenGui.Name = "InfoFPS_GUI"
-
-local Frame = Instance.new("Frame", ScreenGui)
-Frame.Size = UDim2.new(0, 220, 0, 100)
-Frame.Position = UDim2.new(0, 10, 0, 10)
-Frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-Frame.BackgroundTransparency = 0.1
-Frame.Active = true
-Frame.Draggable = true
-Instance.new("UICorner", Frame)
-
--- Loại script
-local TypeLabel = Instance.new("TextLabel", Frame)
-TypeLabel.Size = UDim2.new(1, 0, 0.3, 0)
-TypeLabel.Position = UDim2.new(0, 0, 0, 0)
-TypeLabel.Text = "[Fix Lag PvP"
-TypeLabel.TextColor3 = _G.Color
-TypeLabel.Font = Enum.Font.GothamBold
-TypeLabel.TextScaled = true
-TypeLabel.BackgroundTransparency = 1
-
--- FPS Label
-local FPSLabel = Instance.new("TextLabel", Frame)
-FPSLabel.Size = UDim2.new(1, 0, 0.35, 0)
-FPSLabel.Position = UDim2.new(0, 0, 0.3, 0)
-FPSLabel.Text = "FPS: 0"
-FPSLabel.TextColor3 = _G.Color
-FPSLabel.Font = Enum.Font.GothamBold
-FPSLabel.TextScaled = true
-FPSLabel.BackgroundTransparency = 1
-
--- Made by
-local AuthorLabel = Instance.new("TextLabel", Frame)
-AuthorLabel.Size = UDim2.new(1, 0, 0.35, 0)
-AuthorLabel.Position = UDim2.new(0, 0, 0.65, 0)
-AuthorLabel.Text = "Made by Qminh (kenny)"
-AuthorLabel.TextColor3 = _G.Color
-AuthorLabel.Font = Enum.Font.Gotham
-AuthorLabel.TextScaled = true
-AuthorLabel.BackgroundTransparency = 1
-
--- FPS tính toán
+-- ✅ TỰ ĐỘNG FIX LAG TOÀN DIỆN
+local Lighting = game:GetService("Lighting")
+local Workspace = game:GetService("Workspace")
+local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
-local frameCount = 0
-local lastUpdate = tick()
+local UIS = game:GetService("UserInputService")
+local player = Players.LocalPlayer
 
-RunService.RenderStepped:Connect(function()
-    frameCount = 1
-    local now = tick()
-    if now - lastUpdate >= 1 then
-        local fps = math.floor(frameCount / (now - lastUpdate))
-        FPSLabel.Text = "[FPS: " .. tostring(fps) .. "]"
-        frameCount = 0
-        lastUpdate = now
+Lighting.GlobalShadows = false
+Lighting.FogEnd = 1e10
+Lighting.Brightness = 1
+Lighting.Ambient = Color3.fromRGB(128, 128, 128)
+Lighting.OutdoorAmbient = Color3.fromRGB(128, 128, 128)
+Lighting.EnvironmentDiffuseScale = 0
+Lighting.EnvironmentSpecularScale = 0
+Lighting.ClockTime = 13
+
+local terrain = Workspace:FindFirstChildOfClass("Terrain")
+if terrain then
+    terrain.WaterWaveSize = 0
+    terrain.WaterWaveSpeed = 0
+    terrain.WaterReflectance = 0
+    terrain.WaterTransparency = 1
+end
+
+for _, v in pairs(Workspace:GetDescendants()) do
+    if v:IsA("BasePart") then
+        v.Material = Enum.Material.SmoothPlastic
+        v.CastShadow = false
+        v.Reflectance = 0
+    elseif v:IsA("ParticleEmitter") or v:IsA("Trail") or v:IsA("Smoke") or v:IsA("Fire") then
+        v.Enabled = false
+    elseif v:IsA("Decal") then
+        v.Transparency = 0.5
     end
-end)
+end
 
--- Rainbow hiệu ứng
-task.spawn(function()
-    local hue = 0
-    while true do
-        hue = (hue + 0.01) % 1
-        local color = Color3.fromHSV(hue, 1, 1)
-        pcall(function()
-            TypeLabel.TextColor3 = color
-            FPSLabel.TextColor3 = color
-            AuthorLabel.TextColor3 = color
-        end)
-        RunService.RenderStepped:Wait()
-    end
-end)
--- Safe Fix Lag - Compatible with all executors
-pcall(function()
-    local Lighting = game:GetService("Lighting")
-    local Terrain = workspace:FindFirstChildOfClass("Terrain")
-
-    Lighting.GlobalShadows = false
-    Lighting.FogEnd = 1e7
-    Lighting.Brightness = 1
-    Lighting.ClockTime = 14
-    Lighting.OutdoorAmbient = Color3.fromRGB(127,127,127)
-    Lighting.Ambient = Color3.fromRGB(127,127,127)
-
-    for _, obj in ipairs(workspace:GetDescendants()) do
-        if obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Explosion") or obj:IsA("Smoke") or obj:IsA("Fire") or obj:IsA("Sparkles") then
-            pcall(function() obj:Destroy() end)
-        elseif obj:IsA("Decal") or obj:IsA("Texture") then
-            pcall(function() obj.Transparency = 0.8 end)
-        elseif obj:IsA("MeshPart") or obj:IsA("Part") then
-            pcall(function()
-                obj.Material = Enum.Material.SmoothPlastic
-                obj.Reflectance = 0
-            end)
+local function optimizeCharacter(char)
+    for _, v in pairs(char:GetDescendants()) do
+        if v:IsA("BasePart") then
+            v.Material = Enum.Material.SmoothPlastic
+            v.CastShadow = false
+            v.Reflectance = 0
+        elseif v:IsA("ParticleEmitter") or v:IsA("Trail") then
+            v.Enabled = false
         end
     end
+end
 
-    if Terrain then
-        Terrain.WaterWaveSize = 0
-        Terrain.WaterWaveSpeed = 0
-        Terrain.WaterReflectance = 0
-        Terrain.WaterTransparency = 0.9
+if player.Character then
+    optimizeCharacter(player.Character)
+end
+player.CharacterAdded:Connect(optimizeCharacter)
+
+pcall(
+    function()
+        setfpscap(60)
     end
+)
 
-    settings().Rendering.QualityLevel = Enum.QualityLevel.Level02
-end)
+-- ✅ GUI GỐC + NÚT + FPS + CHẤT LƯỢNG + PHÍM F4
+_G.Color = Color3.fromRGB(0, 180, 255)
+_G.ShowRainbowFPS = true
+_G.MenuVisible = true
+_G.Minimized = false
 
+local gui = Instance.new("ScreenGui", game.CoreGui)
+gui.Name = "CombinedRainbowFPS_UI"
+
+local frame = Instance.new("Frame", gui)
+frame.Size = UDim2.new(0, 240, 0, 160)
+frame.Position = UDim2.new(0, 10, 0, 10)
+frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+frame.BackgroundTransparency = 0.1
+frame.Active = true
+frame.Draggable = true
+Instance.new("UICorner", frame)
+
+local title = Instance.new("TextLabel", frame)
+title.Size = UDim2.new(1, 0, 0.2, 0)
+title.Position = UDim2.new(0, 0, 0, 0)
+title.Text = "[Fix lag PvP]"
+title.TextColor3 = _G.Color
+title.Font = Enum.Font.GothamBold
+title.TextScaled = true
+title.BackgroundTransparency = 1
+
+local fpsLabel = Instance.new("TextLabel", frame)
+fpsLabel.Size = UDim2.new(1, 0, 0.2, 0)
+fpsLabel.Position = UDim2.new(0, 0, 0.2, 0)
+fpsLabel.Text = "[FPS: 0]"
+fpsLabel.TextColor3 = _G.Color
+fpsLabel.Font = Enum.Font.GothamBold
+fpsLabel.TextScaled = true
+fpsLabel.BackgroundTransparency = 1
+
+local qualityLabel = Instance.new("TextLabel", frame)
+qualityLabel.Size = UDim2.new(1, 0, 0.2, 0)
+qualityLabel.Position = UDim2.new(0, 0, 0.4, 0)
+qualityLabel.Text = "[Chất lượng: ?]"
+qualityLabel.TextColor3 = _G.Color
+qualityLabel.Font = Enum.Font.Gotham
+qualityLabel.TextScaled = true
+qualityLabel.BackgroundTransparency = 1
+
+local author = Instance.new("TextLabel", frame)
+author.Size = UDim2.new(1, 0, 0.2, 0)
+author.Position = UDim2.new(0, 0, 0.6, 0)
+author.Text = "[Made by Qminh (kenny)]"
+author.TextColor3 = _G.Color
+author.Font = Enum.Font.Gotham
+author.TextScaled = true
+author.BackgroundTransparency = 1
+
+local toggleFPS = Instance.new("TextButton", frame)
+toggleFPS.Size = UDim2.new(0.3, 0, 0.15, 0)
+toggleFPS.Position = UDim2.new(0.05, 0, 0.85, 0)
+toggleFPS.Text = "Ẩn FPS"
+toggleFPS.BackgroundColor3 = _G.Color
+toggleFPS.TextColor3 = Color3.new(1, 1, 1)
+toggleFPS.TextScaled = true
+Instance.new("UICorner", toggleFPS)
+
+local toggleUI = Instance.new("TextButton", frame)
+toggleUI.Size = UDim2.new(0.3, 0, 0.15, 0)
+toggleUI.Position = UDim2.new(0.4, 0, 0.85, 0)
+toggleUI.Text = "Ẩn Giao Diện"
+toggleUI.BackgroundColor3 = Color3.fromRGB(255, 60, 60)
+toggleUI.TextColor3 = Color3.new(1, 1, 1)
+toggleUI.TextScaled = true
+Instance.new("UICorner", toggleUI)
+
+local minimizeBtn = Instance.new("TextButton", frame)
+minimizeBtn.Size = UDim2.new(0.25, 0, 0.15, 0)
+minimizeBtn.Position = UDim2.new(0.75, 0, 0.85, 0)
+minimizeBtn.Text = "Thu gọn"
+minimizeBtn.BackgroundColor3 = Color3.fromRGB(60, 255, 60)
+minimizeBtn.TextColor3 = Color3.new(1, 1, 1)
+minimizeBtn.TextScaled = true
+Instance.new("UICorner", minimizeBtn)
+
+local showMenuBtn = Instance.new("TextButton", gui)
+showMenuBtn.Size = UDim2.new(0, 100, 0, 40)
+showMenuBtn.Position = UDim2.new(0, 10, 0, 10)
+showMenuBtn.Text = "Hiện Menu"
+showMenuBtn.BackgroundColor3 = Color3.fromRGB(0, 180, 255)
+showMenuBtn.TextColor3 = Color3.new(1, 1, 1)
+showMenuBtn.TextScaled = true
+Instance.new("UICorner", showMenuBtn)
+showMenuBtn.Visible = false
+
+-- FPS + CHẤT LƯỢNG
+local frameCount = 0
+local lastUpdate = tick()
+RunService.RenderStepped:Connect(
+    function()
+        frameCount = 1
+        local now = tick()
+        if now - lastUpdate >= 1 then
+            local fps = math.floor(frameCount / (now - lastUpdate))
+            fpsLabel.Text = "[FPS: " .. fps .. "]"
+            frameCount = 0
+            lastUpdate = now
+
+            if fps >= 0 then
+                qualityLabel.Text = "[Chất lượng: Ổn định ✅]"
+                qualityLabel.TextColor3 = Color3.fromRGB(80, 255, 80)
+            elseif fps >= 50 then
+                qualityLabel.Text = "[Chất lượng: Trung bình ⚠️]"
+                qualityLabel.TextColor3 = Color3.fromRGB(255, 215, 0)
+            elseif fps >= 70 then
+                qualityLabel.Text = "[Chất lượng: Lag nặng ❌]"
+                qualityLabel.TextColor3 = Color3.fromRGB(255, 60, 60)
+            end
+        end
+    end
+)
+
+-- Rainbow Color
+task.spawn(
+    function()
+        local hue = 0
+        while true do
+            if _G.ShowRainbowFPS then
+                hue = (hue + 0.005) % 1
+                local color = Color3.fromHSV(hue, 1, 1)
+                pcall(
+                    function()
+                        title.TextColor3 = color
+                        fpsLabel.TextColor3 = color
+                        qualityLabel.TextColor3 = color
+                        author.TextColor3 = color
+                        toggleFPS.BackgroundColor3 = color
+                    end
+                )
+            end
+            RunService.RenderStepped:Wait()
+        end
+    end
+)
+
+toggleFPS.MouseButton1Click:Connect(
+    function()
+        _G.ShowRainbowFPS = not _G.ShowRainbowFPS
+        toggleFPS.Text = _G.ShowRainbowFPS and "Ẩn FPS" or "Hiện FPS"
+    end
+)
+
+toggleUI.MouseButton1Click:Connect(
+    function()
+        _G.MenuVisible = false
+        frame.Visible = false
+        showMenuBtn.Visible = true
+    end
+)
+
+minimizeBtn.MouseButton1Click:Connect(
+    function()
+        if not _G.Minimized then
+            title.Visible = false
+            author.Visible = false
+            toggleFPS.Visible = false
+            toggleUI.Visible = false
+            minimizeBtn.Text = "Mở rộng"
+            _G.Minimized = true
+            frame.Size = UDim2.new(0, 100, 0, 60)
+        else
+            title.Visible = true
+            author.Visible = true
+            toggleFPS.Visible = true
+            toggleUI.Visible = true
+            minimizeBtn.Text = "Thu gọn"
+            _G.Minimized = false
+            frame.Size = UDim2.new(0, 240, 0, 160)
+        end
+    end
+)
+
+showMenuBtn.MouseButton1Click:Connect(
+    function()
+        _G.MenuVisible = true
+        frame.Visible = true
+        showMenuBtn.Visible = false
+    end
+)
+
+UIS.InputBegan:Connect(
+    function(input, gameProcessed)
+        if gameProcessed then
+            return
+        end
+        if input.KeyCode == Enum.KeyCode.F4 then
+            _G.MenuVisible = not _G.MenuVisible
+            frame.Visible = _G.MenuVisible
+            showMenuBtn.Visible = not _G.MenuVisible
+        end
+    end
+)
